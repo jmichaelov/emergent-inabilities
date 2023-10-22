@@ -1,4 +1,3 @@
-# TODO: Remove all TODO comments once the implementation is complete.
 """
 Inverse Scaling: When Bigger Isn't Better
 https://arxiv.org/abs/2306.09479
