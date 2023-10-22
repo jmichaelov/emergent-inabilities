@@ -1,0 +1,147 @@
+---
+title: 'Statistical Analysis: Emergent Inabilities'
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+```
+
+```{r}
+accuracy = read_tsv("../results/all_results.tsv")
+
+accuracy = accuracy%>%
+  separate(ModelName,into=c("Model","Size"),"-")%>%
+  unite(col = Model,  Model, na.rm=TRUE, sep = ",")%>%
+  mutate(Step = as.numeric(as.character(str_replace(ModelRevision,"step",""))))
+
+accuracy
+```
+
+```{r}
+accuracy_fig = accuracy%>%
+  mutate(Size=fct_relevel(Size,"70m","160m","410m","1b","1.4b","2.8b","6.9b","12b"))%>%
+  mutate(Size = (fct_recode(Size,
+                           "70 million" = "70m",
+                           "160 million" = "160m",
+                           "410 million" = "410m",
+                           "1 billion" = "1b",
+                           "1.4 billion" = "1.4b",
+                           "2.8 billion" = "2.8b",
+                           "6.9 billion" = "6.9b",
+                           "12 billion"="12b"
+                           )))%>%
+  mutate(Task = fct_recode(Task,
+                           "Hindsight Neglect"="isp_hindsight_neglect",
+                           "Into the Unknown"="isp_into_the_unknown",
+                           "Memo Trap"="isp_memo_trap",
+                           "Modus Tollens"="isp_modus_tollens",
+                           "NeQA"="isp_neqa",
+                           "Pattern Match Suppression"="isp_pattern_matching_suppression",
+                           "Redefine"="isp_redefine",
+                           "Repetitive Algebra"="isp_repetitive_algebra",
+                           "Resisting Correction"="isp_resisting_correction",
+                           "Sig Figs"="isp_sig_figs",
+                           "TruthfulQA-MC1"="truthfulqa_mc1",
+                           "TruthfulQA-MC2"="truthfulqa_mc2"    ))%>%
+  mutate(Task = fct_relevel(Task,"TruthfulQA-MC1","TruthfulQA-MC2"))%>%
+  # mutate(Task = fct_recode(Task,
+  #                             "redefine-math"="inverse-scaling__redefine-math",
+  #                             "NeQA"="inverse-scaling__NeQA",
+  #                             "hindsight-neglect-10shot"="inverse-scaling__hindsight-neglect-10shot", 
+  #                             "quote-repetition"="inverse-scaling__quote-repetition"    
+  #                             ))%>%
+  rename("Parameters" = "Size")%>%
+  mutate(TrainingTokens = Step*2097152)%>%
+  # rename("TrainingTokens" = "Step")%>%
+  ggplot(aes(x=TrainingTokens,y=Accuracy,color=Parameters)) + geom_line() + geom_point() + facet_wrap(.~Task,scales="free_y",ncol=4) + theme_minimal()+
+  scale_x_log10(
+   breaks = scales::trans_breaks("log10", function(x) 10^x),
+   labels = scales::trans_format("log10", scales::math_format(10^.x))
+ )  + scale_color_manual(values = c("#555555","#F0E442", "#E69F00", "#D55E00","#CC79A7","#56B4E9",  "#0072B2", "#009E73")) + xlab("Training Tokens")
+
+
+ggsave("accuracy_fig.pdf",accuracy_fig,width = 10, height = 6)
+
+accuracy_fig
+```
+
+
+
+```{r}
+accuracy2 = accuracy%>%
+  mutate(Size = 1000000*as.numeric(as.character(fct_recode(Size,
+                           "70" = "70m",
+                           "160" = "160m",
+                           "410" = "410m",
+                           "1000" = "1b",
+                           "1400" = "1.4b",
+                           "2800" = "2.8b",
+                           "6900" = "6.9b",
+                           "12000" = "12b"
+                           ))),
+         Tokens = Step*2097152)
+
+
+```
+
+
+```{r}
+results_df = tibble(task_name=factor(),effect=factor(),t=numeric(),df=integer(),p_uncorrected=numeric())
+
+for (task in unique(accuracy2$Task)){
+model = accuracy2%>%
+    filter(Task==task)%>%
+    lm(data=.,formula=scale(Accuracy) ~ scale(log10(Size))*scale(log10(Tokens)))
+
+results =  as.data.frame(summary(model)$coefficients[c(2,3,4),])
+effect = row.names(results)
+results$effect = effect
+results$df = model$df.residual
+results$task_name = task
+results=results%>%
+  rename("t"="t value",
+         "p_uncorrected"="Pr(>|t|)")
+
+results = results%>%tibble%>%select(task_name,effect,t,df,p_uncorrected)
+results_df = results_df%>%add_row(results)
+}
+
+results_df$p = p.adjust(results_df$p_uncorrected,method="BH")
+
+results_df = results_df%>%
+  select(-p_uncorrected)%>%
+  mutate(effect = fct_recode(effect,
+                             "Parameters" = "scale(log10(Size))",
+                             "Tokens" = "scale(log10(Tokens))",
+                             "Interaction" = "scale(log10(Size)):scale(log10(Tokens))"
+                             ))
+
+results_df=results_df%>%
+    mutate(p=case_when(p<0.001 ~ "p<0.001",
+                          TRUE ~ paste("p=", as.character(round(p,3)),sep="")))%>%
+  mutate(stat_test=paste("t(",df,")=",round(t,2),", ",p,sep=""))%>%
+  select(task_name,effect,stat_test)%>%
+  pivot_wider(names_from=effect,values_from = stat_test)%>%
+  mutate(task_name = fct_recode(task_name,
+                           "Hindsight Neglect"="isp_hindsight_neglect",
+                           "Into the Unknown"="isp_into_the_unknown",
+                           "Memo Trap"="isp_memo_trap",
+                           "Modus Tollens"="isp_modus_tollens",
+                           "NeQA"="isp_neqa",
+                           "Pattern Match Suppression"="isp_pattern_matching_suppression",
+                           "Redefine"="isp_redefine",
+                           "Repetitive Algebra"="isp_repetitive_algebra",
+                           "Resisting Correction"="isp_resisting_correction",
+                           "Sig Figs"="isp_sig_figs",
+                           "TruthfulQA-MC1"="truthfulqa_mc1",
+                           "TruthfulQA-MC2"="truthfulqa_mc2"    ))%>%
+  mutate(task_name = fct_relevel(task_name,"TruthfulQA-MC1","TruthfulQA-MC2"))
+
+results_df%>%write_tsv("statistical_tests.tsv")
+```
+

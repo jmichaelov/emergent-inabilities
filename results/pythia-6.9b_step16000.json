@@ -1,0 +1,94 @@
+{
+  "results": {
+    "isp_hindsight_neglect": {
+      "acc": 0.5492063492063493,
+      "acc_stderr": 0.028079660068225123,
+      "acc_norm": 0.5492063492063493,
+      "acc_norm_stderr": 0.028079660068225123
+    },
+    "isp_into_the_unknown": {
+      "acc": 0.4906798245614035,
+      "acc_stderr": 0.011708498545722043,
+      "acc_norm": 0.4906798245614035,
+      "acc_norm_stderr": 0.011708498545722043
+    },
+    "isp_memo_trap": {
+      "acc": 0.8237179487179487,
+      "acc_stderr": 0.012461993114374629,
+      "acc_norm": 0.7297008547008547,
+      "acc_norm_stderr": 0.01452409089811768
+    },
+    "isp_modus_tollens": {
+      "acc": 0.9215210355987055,
+      "acc_stderr": 0.0076523668137684145,
+      "acc_norm": 1.0,
+      "acc_norm_stderr": 0.0
+    },
+    "isp_neqa": {
+      "acc": 0.46,
+      "acc_stderr": 0.028823067684915705,
+      "acc_norm": 0.46,
+      "acc_norm_stderr": 0.028823067684915705
+    },
+    "isp_pattern_matching_suppression": {
+      "acc": 0.06302521008403361,
+      "acc_stderr": 0.0064329343221363145,
+      "acc_norm": 0.08333333333333333,
+      "acc_norm_stderr": 0.0073164955025821245
+    },
+    "isp_redefine": {
+      "acc": 0.6254019292604501,
+      "acc_stderr": 0.01372861772357171,
+      "acc_norm": 0.6157556270096463,
+      "acc_norm_stderr": 0.013796610016995505
+    },
+    "isp_repetitive_algebra": {
+      "acc": 0.427,
+      "acc_stderr": 0.015649789644462217,
+      "acc_norm": 0.425,
+      "acc_norm_stderr": 0.0156403203170401
+    },
+    "isp_resisting_correction": {
+      "acc": 0.872140522875817,
+      "acc_stderr": 0.0038969329268513345,
+      "acc_norm": 0.7407407407407407,
+      "acc_norm_stderr": 0.005114032569572378
+    },
+    "isp_sig_figs": {
+      "acc": 0.38019811456189884,
+      "acc_stderr": 0.003358148106085628,
+      "acc_norm": 0.38019811456189884,
+      "acc_norm_stderr": 0.003358148106085628
+    },
+    "truthfulqa_mc": {
+      "mc1": 0.23745410036719705,
+      "mc1_stderr": 0.014896277441041843,
+      "mc2": 0.40113046554303117,
+      "mc2_stderr": 0.014593508600797894
+    }
+  },
+  "versions": {
+    "isp_hindsight_neglect": 0,
+    "isp_into_the_unknown": 0,
+    "isp_memo_trap": 0,
+    "isp_modus_tollens": 0,
+    "isp_neqa": 0,
+    "isp_pattern_matching_suppression": 0,
+    "isp_redefine": 0,
+    "isp_repetitive_algebra": 0,
+    "isp_resisting_correction": 0,
+    "isp_sig_figs": 0,
+    "truthfulqa_mc": 1
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=EleutherAI/pythia-6.9b,revision=step16000",
+    "num_fewshot": 0,
+    "batch_size": null,
+    "device": "cuda:0",
+    "no_cache": false,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}
